@@ -104,15 +104,19 @@ namespace BedrockAFK.CLI
                 Console.WriteLine("Choose a mode to start:");
                 Console.WriteLine("1) Walk forward");
                 Console.WriteLine("2) Water bucket");
-                if (int.TryParse(Console.ReadLine(), out var num) && num > 0 && num <= 2)
+                Console.WriteLine("3) AFK Fishing (fast)");
+                Console.WriteLine("4) AFK Fishing (slow)");
+                if (int.TryParse(Console.ReadLine(), out var num) && num > 0 && num <= 4)
                     mode = num;
                 else
                     Console.WriteLine("Invalid option.\n");
             }
 
-            Console.WriteLine("Starting...");
-
-            await Task.Delay(2500);
+            for (var i = 3; i > 0; i--)
+            {
+                Console.WriteLine("Starting... " + i);
+                await Task.Delay(1000);
+            }
 
             Console.WriteLine("Started.");
 
@@ -140,6 +144,14 @@ namespace BedrockAFK.CLI
                                         break;
                                     case 2:
                                         _ = SimulateMousePress(injector, wHandle, InjectedInputMouseOptions.RightDown, 100);
+                                        break;
+                                    case 3:
+                                        await SimulateMousePress(injector, wHandle, InjectedInputMouseOptions.RightDown, 50);
+                                        await Task.Delay(10000);
+                                        break;
+                                    case 4:
+                                        await SimulateMousePress(injector, wHandle, InjectedInputMouseOptions.RightDown, 50);
+                                        await Task.Delay(20000);
                                         break;
                                 }
                             }
