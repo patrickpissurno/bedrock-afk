@@ -54,13 +54,43 @@ namespace BedrockAFK.CLI
 
             //info.VirtualKey = (ushort)((VirtualKey)Enum.Parse(typeof(VirtualKey), "A", true));
 
-            var info = new InjectedInputKeyboardInfo();
-            info.VirtualKey = (ushort)VirtualKey.W;
             injector.InjectKeyboardInput(new[] { new InjectedInputKeyboardInfo { VirtualKey = (ushort)key } });
 
             await Task.Delay(duration);
 
             injector.InjectKeyboardInput(new[] { new InjectedInputKeyboardInfo { VirtualKey = (ushort)key, KeyOptions = InjectedInputKeyOptions.KeyUp } });
+            //Console.WriteLine("SIMULATED");
+        }
+
+        static async Task SimulateMousePress(InputInjector injector, IntPtr window, InjectedInputMouseOptions mouse, int duration)
+        {
+            ShowWindowAsync(window, SW_SHOWDEFAULT);
+            ShowWindowAsync(window, SW_SHOW);
+            SetForegroundWindow(window);
+
+            await Task.Delay(2);
+
+            //info.VirtualKey = (ushort)((VirtualKey)Enum.Parse(typeof(VirtualKey), "A", true));
+
+            injector.InjectMouseInput(new[] { new InjectedInputMouseInfo { MouseOptions = mouse } });
+
+            await Task.Delay(duration);
+
+            InjectedInputMouseOptions up = InjectedInputMouseOptions.None;
+            switch (mouse)
+            {
+                case InjectedInputMouseOptions.LeftDown:
+                    up = InjectedInputMouseOptions.LeftUp;
+                    break;
+                case InjectedInputMouseOptions.MiddleDown:
+                    up = InjectedInputMouseOptions.MiddleUp;
+                    break;
+                case InjectedInputMouseOptions.RightDown:
+                    up = InjectedInputMouseOptions.RightUp;
+                    break;
+            }
+            if(up != InjectedInputMouseOptions.None)
+                injector.InjectMouseInput(new[] { new InjectedInputMouseInfo { MouseOptions = up } });
             //Console.WriteLine("SIMULATED");
         }
 
@@ -73,7 +103,8 @@ namespace BedrockAFK.CLI
                 Console.WriteLine("-----------");
                 Console.WriteLine("Choose a mode to start:");
                 Console.WriteLine("1) Walk forward");
-                if (int.TryParse(Console.ReadLine(), out var num) && num > 0 && num <= 1)
+                Console.WriteLine("2) Water bucket");
+                if (int.TryParse(Console.ReadLine(), out var num) && num > 0 && num <= 2)
                     mode = num;
                 else
                     Console.WriteLine("Invalid option.\n");
@@ -102,7 +133,15 @@ namespace BedrockAFK.CLI
 
                             if (windowTitle.ToString() == "Minecraft")
                             {
-                                _ = SimulateKeyPress(injector, wHandle, VirtualKey.W, 250);
+                                switch (mode)
+                                {
+                                    case 1:
+                                        _ = SimulateKeyPress(injector, wHandle, VirtualKey.W, 250);
+                                        break;
+                                    case 2:
+                                        _ = SimulateMousePress(injector, wHandle, InjectedInputMouseOptions.RightDown, 100);
+                                        break;
+                                }
                             }
                         }
                     }
