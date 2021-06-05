@@ -7,8 +7,19 @@ namespace BedrockAFK.CLI
 {
     class Program
     {
+        private static MainCore.Mode? ParseMode(string x) => int.TryParse(x, out var n) && n >= 1 && n <= 4 ? (MainCore.Mode)n : (MainCore.Mode?)null;
+
         static void Main(string[] args)
         {
+            var _mode = args.Length < 1 ? null : args[0];
+            var mode = ParseMode(_mode);
+            if (_mode != null && mode == null)
+            {
+                Environment.ExitCode = 1;
+                Console.Error.WriteLine("Invalid mode");
+                return;
+            }
+
             using (var cancel = new CancellationTokenSource())
             {
                 ConsoleCancelEventHandler dispose = (o, e) =>
@@ -23,7 +34,19 @@ namespace BedrockAFK.CLI
                 Console.CancelKeyPress += dispose;
                 try
                 {
-                    Main(cancel).Wait();
+                    Main(cancel, mode).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Environment.ExitCode = 1;
+                    Console.Error.WriteLine("Fatal error. Stack:");
+                    Console.Error.WriteLine(ex.ToString());
+
+                    if (mode == null)
+                    {
+                        Console.WriteLine("\nPress any key to exit.");
+                        Console.ReadKey();
+                    }
                 }
                 finally
                 {
@@ -32,10 +55,9 @@ namespace BedrockAFK.CLI
             }
         }
 
-        static async Task Main(CancellationTokenSource cancel)
+        static async Task Main(CancellationTokenSource cancel, MainCore.Mode? mode)
         {
-            MainCore.Mode? mode = null;
-            while (mode == null)
+            while (mode == null && !cancel.IsCancellationRequested)
             {
                 Console.WriteLine("Bedrock AFK");
                 Console.WriteLine("-----------");
@@ -44,10 +66,18 @@ namespace BedrockAFK.CLI
                 Console.WriteLine("2) Water bucket");
                 Console.WriteLine("3) AFK Fishing (fast)");
                 Console.WriteLine("4) AFK Fishing (slow)");
-                if (int.TryParse(Console.ReadLine(), out var num) && num >= 1 && num <= 4)
-                    mode = (MainCore.Mode)num;
+
+                var _mode = ParseMode(Console.ReadLine());
+                if (_mode == null)
+                {
+                    await Task.Delay(100);
+                    if (!cancel.IsCancellationRequested)
+                        Console.WriteLine("Invalid option.\n");
+                    else
+                        return;
+                }
                 else
-                    Console.WriteLine("Invalid option.\n");
+                    mode = _mode;
             }
 
             for (var i = 5; i >= 1; i--)
@@ -62,19 +92,8 @@ namespace BedrockAFK.CLI
 
             Console.WriteLine("Started.");
 
-            try
-            {
-                var core = new MainCore();
-                await core.Run(cancel, mode.Value);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Fatal error. Stack:");
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine();
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
-            }
+            var core = new MainCore();
+            await core.Run(cancel, mode.Value);
         }
     }
 }
