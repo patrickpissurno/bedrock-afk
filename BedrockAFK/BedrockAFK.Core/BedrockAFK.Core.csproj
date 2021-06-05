@@ -55,4 +55,14 @@
     <Compile Include="SimulationUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>IF "$(ConfigurationName)" EQU "Debug" (goto debug)
+DEL /q /s *.xml
+DEL /q /s *.exe.config
+DEL /q /s *.dll.config
+DEL /q /s *.pdb
+DEL /q /s System.Runtime.WindowsRuntime.dll
+DEL /q /s Windows.winmd
+:debug</PostBuildEvent>
+  </PropertyGroup>
 </Project>
