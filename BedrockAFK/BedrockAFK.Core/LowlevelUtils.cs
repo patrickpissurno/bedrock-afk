@@ -20,11 +20,8 @@ namespace BedrockAFK.Core
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         internal static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool ShowWindowAsync(IntPtr windowHandle, int nCmdShow);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool SetForegroundWindow(IntPtr windowHandle);
+        [DllImport("user32.dll")]
+        internal static extern IntPtr GetForegroundWindow();
 
         internal static IEnumerable<IntPtr> EnumerateProcessWindowHandles(Process process)
         {
